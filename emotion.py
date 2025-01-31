@@ -47,6 +47,7 @@ def detect_emotion(image):
         label_text = f"{emotion_label} ({accuracy:.2f}%)"
         cv2.putText(image, label_text, (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
 
+        #print("Image is",label_text)
         # Sort emotions by percentage (highest to lowest)
         sorted_emotions = sorted(zip(emotion_labels, emotion_prediction[0]), key=lambda x: x[1])
 
@@ -59,6 +60,8 @@ def detect_emotion(image):
             cv2.putText(image, text, (image.shape[1] - 250, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (13, 4, 4), 1)
             y_offset -= 25
 
+            print(text)
+    
     return image
 
 def process_image(image_path):
