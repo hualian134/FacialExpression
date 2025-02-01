@@ -1,10 +1,11 @@
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from side import show_accuary
 from keras._tf_keras.keras.models import Sequential
 from keras._tf_keras.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from keras._tf_keras.keras.utils import to_categorical
-from sklearn .model_selection import train_test_split
+from sklearn.model_selection import train_test_split
 
 
 # Load the FER-2013 dataset
@@ -47,5 +48,8 @@ history = model.fit(
     validation_data=(X_test, y_test)
 )
 
-model.save('emotion_detection_model.h5')
+
+model.save('models/my_model.keras')
+
+show_accuary(history)
 
