@@ -1,26 +1,46 @@
 import sys
+import os
 import cv2
 import numpy as np
 from PyQt6.QtWidgets import (
-    QApplication, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QFileDialog, QTextEdit
+    QApplication, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QFileDialog, QTextEdit, QMessageBox ,QGridLayout
 )
-from PyQt6.QtGui import QImage, QPixmap, QFont
-from PyQt6.QtCore import QTimer
+from PyQt6.QtGui import QImage, QPixmap, QFont, QIcon
+from PyQt6.QtCore import QTimer,Qt
 from mtcnn import MTCNN
 from keras._tf_keras.keras.models import load_model
 
+# def resource_path(self, relative_path):
+#         try:
+#             base_path = sys._MEIPASS
+#         except AttributeError:
+#             base_path = os.path.abspath(".")
+
+#         return os.path.join(base_path, relative_path)
 class EmotionDetectionApp(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Emotion Detection with MTCNN")
-        self.setGeometry(100, 100, 1200, 800)
+
+        # Set the window icon
+        self.setWindowIcon(QIcon("emotion-recognition.ico"))
+
+        self.setWindowTitle("Emotion Detection")
+        self.setGeometry(100, 50, 1200, 700)
 
         # UI Elements
+        self.title=QLabel("Facial Expression Recognition System\nGroup II")
+        #self.title.setFont(QFont("Arial",12))
+        self.title.setStyleSheet("border:none; font-weight:Bold; color:gray ; font-family:Arial ; font-size:20px; margin:10px")
+        self.title.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        
         self.video_label = QLabel(self)
         self.video_label.resize(800, 600)
-        self.video_label.setText("Emotion Detection Feed Will Appear Here")
-        self.video_label.setStyleSheet("font-size: 20px; color: gray; border: 2px solid gray;")
+        #self.video_label.setText("Supervised by:\t\t\tPresented by:\nDr.Yu Yu Win\t\t Mg Zaw Khant Win\n")
+        self.video_label.setStyleSheet("font-size: 20px; color: gray; border: 2px solid gray;font-weight:Bold")
+        self.video_label.setAlignment(Qt.AlignmentFlag.AlignCenter )
+
+
 
         # Emotion Display Area
         self.emotion_display = QTextEdit(self)
@@ -45,20 +65,57 @@ class EmotionDetectionApp(QWidget):
         self.exit_button.setStyleSheet("font-size: 14px; padding: 10px; background-color: #ff4444; color: white;")
         self.exit_button.clicked.connect(self.close)
 
+
         # Layouts
         main_layout = QHBoxLayout()
 
+        #button layout
+        button_layout= QGridLayout()
+        button_layout.addWidget(self.upload_image_button,0,0)
+        button_layout.addWidget(self.upload_video_button,0,1)
+        button_layout.addWidget(self.real_time_button,0,2)
+        button_layout.addWidget(self.exit_button,1,1)
+
+        # Text layout
+        # text_layout = QVBoxLayout()
+        # text_layout.addWidget(self.title)
+        # #text_layout.addWidget(QLabel("Group II"))
+        # text_layout.setSpacing(0) # Remove spacing between widgets
+    
+        self.member_layout=QHBoxLayout()
+        teacher=QLabel("Supervised by:\nDr.Daw Yu Yu Win")
+        teacher.setStyleSheet("border:none ;ali")
+        members=QLabel("Presented by:\nMg Zaw Khant Win \nMa Cho Mar Aye \nMa Phyo Thazin \nMa Phoo Myat Thwe ")
+        members.setStyleSheet("border: none")
+        self.member_layout.addWidget(teacher)
+        self.member_layout.addWidget(members)
+        #member_layout.setSpacing(50)
+        self.member_layout.setContentsMargins(100,0,50,0)
+        # member_layout.setAlignment(Qt.AlignmentFlag.AlignCenter & Qt.AlignmentFlag.AlignTop)
+        
+        # text_layout.addLayout(member_layout,stretch=10)
+        # self.video_label.setLayout(text_layout)
+        self.glayout=QGridLayout()
+        self.glayout.addWidget(self.title,0,0)
+        self.glayout.addLayout(self.member_layout,0,0)
+        self.glayout.setSpacing(0)
+        self.glayout.setContentsMargins(0,0,0,0)
+        #glayout.addWidget(members,1,4,0,1)
+        self.video_label.setLayout(self.glayout)
         # Left Layout (Video Feed)
         left_layout = QVBoxLayout()
         left_layout.addWidget(self.video_label)
-        left_layout.addWidget(self.upload_image_button)
-        left_layout.addWidget(self.upload_video_button)
-        left_layout.addWidget(self.real_time_button)
-        left_layout.addWidget(self.exit_button)
-
+        #left_layout.addWidget(QLabel("Emotion Probabilities:"))
+        
+        # left_layout.addWidget(self.upload_image_button)
+        # left_layout.addWidget(self.upload_video_button)
+        # left_layout.addWidget(self.real_time_button)
+        # left_layout.addWidget(self.exit_button)
+        left_layout.addLayout(button_layout)
+        
         # Right Layout (Emotion Display)
         right_layout = QVBoxLayout()
-        right_layout.addWidget(QLabel("Emotion Probabilities:"))
+        #right_layout.addWidget(QLabel("Emotion Probabilities:"))
         right_layout.addWidget(self.emotion_display)
 
         # Add left and right layouts to main layout
@@ -76,22 +133,50 @@ class EmotionDetectionApp(QWidget):
         self.face_detector = MTCNN()
 
         # Load emotion detection model
-        self.emotion_model = load_model("emotion_detection_model.h5")  # Replace with your model path
+        #self.emotion_model = load_model("emotion_detection_model.h5")  # Replace with your model path
+        # model_path = resource_path("emotion_detection_model.h5")
+        # if not os.path.exists(model_path):
+        #     raise FileNotFoundError(f"Model file not found: {model_path}")
+        self.model = load_model("emotion_detection_model.h5")
         self.emotion_labels = ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral']
+    
+    #delete inner layout
 
+    def delete_layout(self):
+        while self.member_layout.count():
+            item = self.member_layout.takeAt(0)
+            if item.widget() is not None:
+                item.widget().deleteLater() #delete all widget
+        
+        
+        while self.glayout.count():
+            item = self.glayout.takeAt(0)
+            if item.widget() is not None:
+                item.widget().deleteLater()
+        
+    
     def upload_image(self):
         
         self.stop_video()
         self.stop_real_time_detection()
-        # Open file dialog to select an image
-        file_path, _ = QFileDialog.getOpenFileName(self, "Open Image", "", "Image Files (*.png *.jpg *.jpeg)")
-        if file_path:
-            # Load the image
-            image = cv2.imread(file_path)
-            if image is not None:
-                # Detect faces and emotions
-                processed_image = self.detect_faces_and_emotions(image)
-                self.display_image(processed_image)
+        if self.member_layout.count()>0:
+            self.delete_layout()
+
+        try:
+            # Open file dialog to select an image
+            file_path, _ = QFileDialog.getOpenFileName(self, "Open Image", "", "Image Files (*.png *.jpg *.jpeg)")
+            if file_path:
+                # Load the image
+                image = cv2.imread(file_path)
+                if image is not None:
+                    # Detect faces and emotions
+                    processed_image = self.detect_faces_and_emotions(image)
+                    self.display_image(processed_image)
+                else:
+                    raise ValueError("Failed to load the image. Please check the file path and format.")
+        except Exception as e:
+            # Display an error message to the user
+            self.show_error_message(f"An error occurred: {str(e)}")
 
     def upload_video(self):
 
@@ -127,7 +212,7 @@ class EmotionDetectionApp(QWidget):
             self.timer.stop()
             self.cap.release()
             self.cap = None
-            self.video_label.setText("Emotion Detection Feed Will Appear Here")
+            self.video_label.setText("Facial Expression Recognition System\nGroup II\n Supervised by Dr.Yu YU Win\n")
             self.video_label.setStyleSheet("font-size: 20px; color: gray; border: 2px solid gray;")
 
 
@@ -142,8 +227,10 @@ class EmotionDetectionApp(QWidget):
     def detect_faces_and_emotions(self, frame):
         # Detect faces using MTCNN
         faces = self.face_detector.detect_faces(frame)
-
-        emotion_text = ""
+        if not faces:
+            emotion_text = "Emotion can't detect"
+        else:
+            emotion_text = "Emotion probabilities"
         for face in faces:
             x, y, width, height = face['box']
             face_region = frame[y:y + height, x:x + width]
@@ -155,13 +242,13 @@ class EmotionDetectionApp(QWidget):
             input_data = np.expand_dims(np.expand_dims(normalized_face, -1), 0)
 
             # Predict emotion
-            predictions = self.emotion_model.predict(input_data)
+            predictions = self.model.predict(input_data)
             # emotion_index = np.argmax(predictions)
             # emotion = self.emotion_labels[emotion_index]
             # confidence = predictions[emotion_index]
             emotion = self.emotion_labels[np.argmax(predictions)]
             accuracy = np.max(predictions)*100
-
+            
             # Draw bounding box and emotion label
             cv2.rectangle(frame, (x, y), (x + width, y + height), (0, 255, 0), 2)
             cv2.putText(frame, f"{emotion} ({accuracy:.2f}%)", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
@@ -174,24 +261,45 @@ class EmotionDetectionApp(QWidget):
                 emotion_text += f"{label}: {pred*100:.2f}%\n"
             emotion_text += "\n"
 
+
         # Update emotion display
         self.emotion_display.setText(emotion_text)
 
         return frame
 
+    # def display_image(self, image):
+    #     # Convert the image to QImage
+    #     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    #     h, w, ch = image.shape
+    #     bytes_per_line = ch * w
+    #     convert_to_Qt_format = QImage(image.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
+    #     self.video_label.setPixmap(QPixmap.fromImage(convert_to_Qt_format))
+        
     def display_image(self, image):
-        # Convert the image to QImage
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        h, w, ch = image.shape
-        bytes_per_line = ch * w
-        convert_to_Qt_format = QImage(image.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
-        self.video_label.setPixmap(QPixmap.fromImage(convert_to_Qt_format))
+        try:
+            # Convert the image to QImage
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            h, w, ch = image.shape
+            bytes_per_line = ch * w
+            convert_to_Qt_format = QImage(image.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
+            self.video_label.setPixmap(QPixmap.fromImage(convert_to_Qt_format))
+        except Exception as e:
+            self.show_error_message(f"Failed to display the image: {str(e)}")
 
     def closeEvent(self, event):
         # Release resources when the window is closed
         if self.cap:
             self.cap.release()
         event.accept()
+
+    def show_error_message(self, message):
+        """Display an error message to the user."""
+        error_box = QMessageBox()
+        error_box.setIcon(QMessageBox.Icon.Critical)
+        error_box.setWindowTitle("Error")
+        error_box.setText(message)
+        error_box.exec()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
