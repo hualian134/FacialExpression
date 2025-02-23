@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from side import show_accuary
+from accuary import show_accuary
 from keras._tf_keras.keras.models import Sequential
 from keras._tf_keras.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from keras._tf_keras.keras.utils import to_categorical
@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 
 
 # Load the FER-2013 dataset
-data = pd.read_csv('fer2013/fer2013.csv')
+data = pd.read_csv('Data/fer2013/fer2013.csv')
 
 # Preprocess the data
 pixels = data['pixels'].apply(lambda x: np.array(x.split(), dtype="float32"))
